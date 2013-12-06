@@ -141,39 +141,42 @@ namespace Indexes.BPlusTree
                 var child = inner.Children[index];
                 Delete(child, key, value, deleteValue, level + 1);
 
-                if (child.IsSubOptimal())
-                {
-                    var sibling = (Node<TKey, TValue>)null;
+                if (!child.IsSubOptimal())
+                    return;
 
-                    // if left child null, use right child
-                    if (index > 0)
-                        sibling = inner.Children[index - 1];
+                var sibling = (Node<TKey, TValue>)null;
 
-                    // if right child null, use left child  
-                    else if (index < inner.Children.Count)
-                        sibling = inner.Children[index + 1];
+                // if left child null, use right child
+                if (index > 0)
+                    sibling = inner.Children[index - 1];
+
+                // if right child null, use left child  
+                else if (index < inner.Children.Count)
+                    sibling = inner.Children[index + 1];
                         
-                    // if not null left child and not null right child, use the child with the fewest keys
-                    else
-                    {                        
-                        var leftChild = inner.Children[index - 1];
-                        var rightChild = inner.Children[index + 1];
+                // if not null left child and not null right child, use the child with the fewest keys
+                else
+                {                        
+                    var leftChild = inner.Children[index - 1];
+                    var rightChild = inner.Children[index + 1];
 
-                        sibling = leftChild;
-                        if (leftChild.IsSubOptimal() && !rightChild.IsSubOptimal())
-                            sibling = rightChild;
-                    }
-
-                    // recalcalculate middle here
-                    if (sibling.IsSubOptimal())
-                    { 
-                        child.Merge(sibling);
-                    }
-                    else 
-                    {
-                        child.Redistribute(sibling);
-                    }
+                    sibling = leftChild;
+                    if (leftChild.IsSubOptimal() && !rightChild.IsSubOptimal())
+                        sibling = rightChild;
                 }
+                
+                // merge if sibling is suboptimal             
+                if (sibling.IsSubOptimal())
+                { 
+                    child.Merge(sibling);
+                }                    
+                // redistrbute if sibling is not sub optimal
+                else
+                {
+                    child.Redistribute(sibling);
+                }
+
+                // recalcalculate middle here
             }
 
             // if at the root and the root is suboptimal

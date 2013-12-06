@@ -118,5 +118,10 @@ namespace Indexes.BPlusTree
                 leaf.Values.RemoveAt(leaf.Values.Count - 1);
             }
         }
+
+        public override int Maximum
+        {
+            get { return Order - 1; }
+        }
     }
 }

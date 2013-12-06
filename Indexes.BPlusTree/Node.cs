@@ -45,9 +45,19 @@ namespace Indexes.BPlusTree
             return Keys.Count;
         }
 
-        public bool IsSubOptimal()
+        public virtual int Minimum
         {
-            return Keys.Count <= Order / 2;
+            get { return Order / 2; }
+        }
+
+        public abstract int Maximum
+        {
+            get;
+        }
+
+        public virtual bool IsSubOptimal()
+        {
+            return Keys.Count < (Order / 2);
         }
     }
 }
