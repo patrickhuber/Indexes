@@ -101,7 +101,7 @@ namespace Indexes.BPlusTree
             var leaf = node as LeafNode<TKey, TValue>;
 
             int total = Keys.Count + node.Keys.Count;
-            int middle = (total - 1) / 2;
+            int middle = (total + 1) / 2;
 
             // move half of the keys to the new node
             while (leaf.Keys.Count > middle)

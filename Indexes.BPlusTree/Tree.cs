@@ -108,7 +108,7 @@ namespace Indexes.BPlusTree
                 var leaf = node as LeafNode<TKey, TValue>;
                 var keyIndex = leaf.Keys.IndexOf(key);
 
-                if (keyIndex > 0)
+                if (keyIndex >= 0)
                 {
                     var valueList = leaf.Values[keyIndex];
                     var valueIndex = valueList.IndexOf(value);
@@ -147,7 +147,7 @@ namespace Indexes.BPlusTree
 
                     // if left child null, use right child
                     if (index > 0)
-                        sibling = inner.Children[index + 1];
+                        sibling = inner.Children[index - 1];
 
                     // if right child null, use left child  
                     else if (index < inner.Children.Count)
@@ -164,6 +164,7 @@ namespace Indexes.BPlusTree
                             sibling = rightChild;
                     }
 
+                    // recalcalculate middle here
                     if (sibling.IsSubOptimal())
                     { 
                         child.Merge(sibling);
@@ -174,6 +175,11 @@ namespace Indexes.BPlusTree
                     }
                 }
             }
+
+            // if at the root and the root is suboptimal
+            // lower the height of the tree
+            if (level == 0 && node.IsSubOptimal())
+            { }
         }
     }
 }

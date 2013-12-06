@@ -63,6 +63,23 @@ namespace Indexes.BPlusTree.UnitTests
 
         [TestMethod]
         public void Test_LeafNode_Redistribute()
-        { }
+        {
+            var child = new LeafNode<int, int>(4);
+            var sibling = new LeafNode<int, int>(4);
+            for (int i = 1; i <= 4; i++)
+            {
+                var node = sibling;                
+                if (i <= 1)
+                    node = child;                
+                    
+                node.Keys.Add(i);
+                node.Values.Add(new List<int>());
+                node.Values[0].Add(i);
+            }
+
+            child.Redistribute(sibling);
+            Assert.AreEqual(2, child.Keys.Count);
+            Assert.AreEqual(2, sibling.Keys.Count);
+        }
     }
 }

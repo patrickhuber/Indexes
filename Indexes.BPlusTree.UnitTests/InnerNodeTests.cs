@@ -99,18 +99,18 @@ namespace Indexes.BPlusTree.UnitTests
         [TestMethod]
         public void Test_InnerNode_Redistribute()
         {
-            var child = new InnerNode<int, int>(3);
-            var sibling = new InnerNode<int, int>(3);
+            var child = new InnerNode<int, int>(4);
+            var sibling = new InnerNode<int, int>(4);
 
             child.Keys.Add(1);
-            var childLeaf = new LeafNode<int, int>(3);
+            var childLeaf = new LeafNode<int, int>(4);
             childLeaf.Keys.Add(1);
             childLeaf.Values.Add(new List<int>());
             childLeaf.Values[0].Add(1);
             child.Children.Add(childLeaf);
 
             sibling.Keys.Add(2);
-            var siblingChild1 = new LeafNode<int, int>(3);
+            var siblingChild1 = new LeafNode<int, int>(4);
             siblingChild1.Keys.Add(2);
             siblingChild1.Values.Add(new List<int>());
             siblingChild1.Values[0].Add(2);
@@ -122,8 +122,31 @@ namespace Indexes.BPlusTree.UnitTests
             sibling.Children.Add(siblingChild1);
 
             sibling.Keys.Add(4);
-            var siblingChild2 = new LeafNode<int, int>(3);
+            var siblingChild2 = new LeafNode<int, int>(4);
+            siblingChild2.Keys.Add(4);
+            siblingChild2.Values.Add(new List<int>());
+            siblingChild2.Values[0].Add(4);
+            siblingChild2.Keys.Add(5);
+            siblingChild2.Values.Add(new List<int>());
+            siblingChild2.Values[1].Add(5);
             sibling.Children.Add(siblingChild2);
+
+            sibling.Keys.Add(6);
+            var siblingChild3 = new LeafNode<int, int>(4);
+            siblingChild3.Keys.Add(6);
+            siblingChild3.Values.Add(new List<int>());
+            siblingChild3.Values[0].Add(6);
+            siblingChild3.Keys.Add(7);
+            siblingChild3.Values.Add(new List<int>());
+            siblingChild3.Values[1].Add(7);
+            sibling.Children.Add(siblingChild3);
+
+            child.Redistribute(sibling);
+
+            Assert.AreEqual(2, sibling.Children.Count);
+            Assert.AreEqual(2, sibling.Keys.Count);
+            Assert.AreEqual(2, child.Keys.Count);
+            Assert.AreEqual(2, child.Children.Count);
         }
     }
 }
