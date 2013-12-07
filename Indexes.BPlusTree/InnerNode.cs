@@ -97,11 +97,13 @@ namespace Indexes.BPlusTree
             return false;
         }
 
-        public override void Redistribute(Node<TKey, TValue> node)
+        public override bool Redistribute(Node<TKey, TValue> node)
         {
-            var innerNode = node as InnerNode<TKey, TValue>;
-
             int total = Keys.Count + node.Keys.Count;
+            if (total <= Minimum)
+                return false;
+
+            var innerNode = node as InnerNode<TKey, TValue>;
             int middle = (total + 1) / 2;
 
             // move half of the keys to the new node
@@ -117,6 +119,8 @@ namespace Indexes.BPlusTree
                 Children.Insert(0, innerNode.Children[innerNode.Children.Count - 1]);
                 innerNode.Children.RemoveAt(innerNode.Children.Count - 1);
             }
+
+            return true;
         }
 
         public override int Maximum

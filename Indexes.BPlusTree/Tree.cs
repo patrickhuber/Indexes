@@ -136,47 +136,76 @@ namespace Indexes.BPlusTree
             else 
             {
                 var inner = node as InnerNode<TKey, TValue>;
-                var index = inner.FindIndex(key);
-                
+                var index = inner.FindIndex(key);                
+
                 var child = inner.Children[index];
                 Delete(child, key, value, deleteValue, level + 1);
 
+                var parent = inner;
                 if (!child.IsSubOptimal())
                     return;
 
                 var sibling = (Node<TKey, TValue>)null;
+                var siblingIndex = -1;
 
-                // if left child null, use right child
+                // if there is no right child, use the left child
                 if (index > 0)
-                    sibling = inner.Children[index - 1];
+                {                    
+                    siblingIndex = index - 1;
+                    sibling = parent.Children[siblingIndex];
+                }
 
-                // if right child null, use left child  
-                else if (index < inner.Children.Count)
-                    sibling = inner.Children[index + 1];
-                        
+                // if there is no left child, use the right child
+                else if (index < parent.Children.Count)
+                {
+                    siblingIndex = index + 1;
+                    sibling = parent.Children[siblingIndex];
+                }
+
                 // if not null left child and not null right child, use the child with the fewest keys
                 else
-                {                        
-                    var leftChild = inner.Children[index - 1];
-                    var rightChild = inner.Children[index + 1];
-
+                {
+                    var leftChild = parent.Children[index - 1];
+                    var rightChild = parent.Children[index + 1];
+                    siblingIndex = index - 1;
                     sibling = leftChild;
                     if (leftChild.IsSubOptimal() && !rightChild.IsSubOptimal())
+                    {
+                        siblingIndex = index + 1;
                         sibling = rightChild;
-                }
-                
-                // merge if sibling is suboptimal             
-                if (sibling.IsSubOptimal())
-                { 
-                    child.Merge(sibling);
-                }                    
-                // redistrbute if sibling is not sub optimal
-                else
-                {
-                    child.Redistribute(sibling);
+                    }
                 }
 
-                // recalcalculate middle here
+                // the parent key index is the location of the key between the sibling node and the
+                // child node. 
+                // If the sibling node is the left subtree, the parent key index is equal to the index 
+                // If the sibling node is the right subtree, the parent key index is equal to the sibling index
+                int parentKeyIndex = siblingIndex > index ? index : siblingIndex;
+
+                // try to redistrubute nodes.                
+                if (child.Redistribute(sibling))
+                {       
+                    var newParentKey = default(TKey);
+                    
+                    // recalculate the key at the given index using the left tree max
+                    // if sibling is > child
+                    if (siblingIndex > index)
+                        newParentKey = sibling.Keys.First();
+                    // if child > sibling
+                    else
+                        newParentKey = child.Keys.First();
+
+                    parent.Keys[parentKeyIndex] = newParentKey;
+                }
+                else
+                {
+                    // if redistrbute fails, merge nodes
+                    child.Merge(sibling);
+
+                    // when a merge occurs, we need to delete the child from the parent. 
+                    parent.Children.RemoveAt(siblingIndex);
+                    parent.Keys.RemoveAt(parentKeyIndex);
+                }                
             }
 
             // if at the root and the root is suboptimal

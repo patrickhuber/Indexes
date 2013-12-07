@@ -23,7 +23,7 @@ namespace Indexes.BPlusTree
 
         public abstract Node<TKey, TValue> Split();
         public abstract void Merge(Node<TKey, TValue> node);
-        public abstract void Redistribute(Node<TKey, TValue> node);
+        public abstract bool Redistribute(Node<TKey, TValue> node);
         public abstract bool IsLeaf();
 
         protected virtual void Init(int order)

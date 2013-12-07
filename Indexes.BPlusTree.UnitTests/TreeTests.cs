@@ -213,7 +213,7 @@ namespace Indexes.BPlusTree.UnitTests
             var tree = new Tree<int, int>(root);
 
             tree.Delete(13);
-            Assert.AreEqual(2, root.Keys.Count);
+            Assert.AreEqual(1, root.Keys.Count);
             Assert.AreEqual(15, root.Keys[0]);
 
             var delete13Parent = (root.Children[0] as InnerNode<int, int>);
@@ -227,15 +227,30 @@ namespace Indexes.BPlusTree.UnitTests
 
             tree.Delete(15);
 
-            var delete15Parent = (root.Children[0] as InnerNode<int, int>);
-            Assert.AreEqual(2, delete15Parent.Keys.Count);
+            var delete15Parent = (root.Children[1] as InnerNode<int, int>);
+            Assert.AreEqual(1, delete15Parent.Keys.Count);
             Assert.AreEqual(20, delete15Parent.Keys[0]);            
             Assert.AreEqual(2, delete15Parent.Children.Count);
-            var delete15Child1 = delete15Parent.Children[2];
+            var delete15Child1 = delete15Parent.Children[0];
             Assert.AreEqual(1, delete15Child1.Keys.Count);
             Assert.AreEqual(16, delete15Child1.Keys[0]);            
 
             tree.Delete(12);
+            var delete12Parent = (root.Children[0] as InnerNode<int, int>);
+            Assert.AreEqual(2, delete12Parent.Keys.Count);
+            Assert.AreEqual(9, delete12Parent.Keys[0]);
+            Assert.AreEqual(10, delete12Parent.Keys[1]);
+            Assert.AreEqual(3, delete12Parent.Children.Count);
+            var delete12Child2 = delete12Parent.Children[1];
+            Assert.AreEqual(1, delete12Child2.Keys.Count);
+            Assert.AreEqual(9, delete12Child2.Keys[0]);
+            var delete12Child3 = delete12Parent.Children[2];
+            Assert.AreEqual(1, delete12Child3.Keys.Count);
+            Assert.AreEqual(10, delete12Child3.Keys[0]);
+
+            tree.Delete(16);
+
+            tree.Delete(25);
         }
     }
 }
