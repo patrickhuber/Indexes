@@ -148,21 +148,22 @@ namespace Indexes.BPlusTree
                 var sibling = (Node<TKey, TValue>)null;
                 var siblingIndex = -1;
 
-                // if there is no right child, use the left child
-                if (index > 0)
-                {                    
-                    siblingIndex = index - 1;
-                    sibling = parent.Children[siblingIndex];
-                }
-
-                // if there is no left child, use the right child
-                else if (index < parent.Children.Count)
+                // if there is no left child
+                if (index == 0)
                 {
                     siblingIndex = index + 1;
                     sibling = parent.Children[siblingIndex];
                 }
 
-                // if not null left child and not null right child, use the child with the fewest keys
+                // if there is no right child
+                else if (index == parent.Children.Count - 1)
+                {
+                    siblingIndex = index - 1;
+                    sibling = parent.Children[siblingIndex];
+                }
+
+                // if both left and right child, 
+                // only use right child left child is suboptimal and right child is not
                 else
                 {
                     var leftChild = parent.Children[index - 1];
@@ -178,8 +179,6 @@ namespace Indexes.BPlusTree
 
                 // the parent key index is the location of the key between the sibling node and the
                 // child node. 
-                // If the sibling node is the left subtree, the parent key index is equal to the index 
-                // If the sibling node is the right subtree, the parent key index is equal to the sibling index
                 int parentKeyIndex = siblingIndex > index ? index : siblingIndex;
 
                 // try to redistrubute nodes.                
@@ -202,7 +201,7 @@ namespace Indexes.BPlusTree
                     // if redistrbute fails, merge nodes
                     child.Merge(sibling);
 
-                    // when a merge occurs, we need to delete the child from the parent. 
+                    // when a merge occurs, we need to delete the sibling from the parent. 
                     parent.Children.RemoveAt(siblingIndex);
                     parent.Keys.RemoveAt(parentKeyIndex);
                 }                
