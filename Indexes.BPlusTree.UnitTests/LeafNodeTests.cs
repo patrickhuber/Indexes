@@ -62,7 +62,7 @@ namespace Indexes.BPlusTree.UnitTests
         }
 
         [TestMethod]
-        public void Test_LeafNode_Redistribute()
+        public void Test_LeafNode_Redistribute_Left()
         {
             var child = new LeafNode<int, int>(4);
             var sibling = new LeafNode<int, int>(4);
@@ -77,7 +77,7 @@ namespace Indexes.BPlusTree.UnitTests
                 node.Values[0].Add(i);
             }
 
-            child.Redistribute(sibling);
+            child.Redistribute(sibling, -1);
             Assert.AreEqual(2, child.Keys.Count);
             Assert.AreEqual(2, sibling.Keys.Count);
         }

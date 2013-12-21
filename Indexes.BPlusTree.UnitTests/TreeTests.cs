@@ -249,8 +249,21 @@ namespace Indexes.BPlusTree.UnitTests
             Assert.AreEqual(10, delete12Child3.Keys[0]);
 
             tree.Delete(16);
+            var delete16Parent = (root.Children[1] as InnerNode<int, int>);
+            Assert.AreEqual(2, delete16Parent.Children.Count);
+            Assert.AreEqual(1, delete16Parent.Keys.Count);
+            Assert.AreEqual(25, delete16Parent.Keys[0]);            
+            var delete16Child1 = delete16Parent.Children[0];
+            Assert.AreEqual(1, delete16Child1.Keys.Count);
+            Assert.AreEqual(20, delete16Child1.Keys[0]);
+            var delete16Child2 = delete16Parent.Children[1];
+            Assert.AreEqual(1, delete16Child2.Keys.Count);
+            Assert.AreEqual(25, delete16Child2.Keys[0]);
 
             tree.Delete(25);
+
+            tree.Delete(10);
+
         }
     }
 }

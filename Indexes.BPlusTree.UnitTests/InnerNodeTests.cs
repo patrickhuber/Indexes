@@ -141,7 +141,7 @@ namespace Indexes.BPlusTree.UnitTests
             siblingChild3.Values[1].Add(7);
             sibling.Children.Add(siblingChild3);
 
-            child.Redistribute(sibling);
+            child.Redistribute(sibling, -1);
 
             Assert.AreEqual(2, sibling.Children.Count);
             Assert.AreEqual(2, sibling.Keys.Count);

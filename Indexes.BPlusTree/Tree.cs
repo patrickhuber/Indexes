@@ -146,20 +146,20 @@ namespace Indexes.BPlusTree
                     return;
 
                 var sibling = (Node<TKey, TValue>)null;
-                var siblingIndex = -1;
+                var siblingDirection = 0;
 
                 // if there is no left child
                 if (index == 0)
                 {
-                    siblingIndex = index + 1;
-                    sibling = parent.Children[siblingIndex];
+                    siblingDirection = +1;
+                    sibling = parent.Children[index + 1];
                 }
 
                 // if there is no right child
                 else if (index == parent.Children.Count - 1)
                 {
-                    siblingIndex = index - 1;
-                    sibling = parent.Children[siblingIndex];
+                    siblingDirection = -1;
+                    sibling = parent.Children[index - 1];
                 }
 
                 // if both left and right child, 
@@ -168,27 +168,27 @@ namespace Indexes.BPlusTree
                 {
                     var leftChild = parent.Children[index - 1];
                     var rightChild = parent.Children[index + 1];
-                    siblingIndex = index - 1;
+                    siblingDirection = -1;
                     sibling = leftChild;
                     if (leftChild.IsSubOptimal() && !rightChild.IsSubOptimal())
                     {
-                        siblingIndex = index + 1;
+                        siblingDirection = +1;
                         sibling = rightChild;
                     }
                 }
 
                 // the parent key index is the location of the key between the sibling node and the
                 // child node. 
-                int parentKeyIndex = siblingIndex > index ? index : siblingIndex;
+                int parentKeyIndex = siblingDirection > 0 ? index : index + siblingDirection;
 
                 // try to redistrubute nodes.                
-                if (child.Redistribute(sibling))
+                if (child.Redistribute(sibling, siblingDirection))
                 {       
                     var newParentKey = default(TKey);
                     
                     // recalculate the key at the given index using the left tree max
                     // if sibling is > child
-                    if (siblingIndex > index)
+                    if (siblingDirection > 0)
                         newParentKey = sibling.Keys.First();
                     // if child > sibling
                     else
@@ -202,7 +202,7 @@ namespace Indexes.BPlusTree
                     child.Merge(sibling);
 
                     // when a merge occurs, we need to delete the sibling from the parent. 
-                    parent.Children.RemoveAt(siblingIndex);
+                    parent.Children.RemoveAt(index + siblingDirection);
                     parent.Keys.RemoveAt(parentKeyIndex);
                 }                
             }

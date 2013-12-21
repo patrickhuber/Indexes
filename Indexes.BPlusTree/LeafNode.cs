@@ -27,14 +27,6 @@ namespace Indexes.BPlusTree
             Values = new List<IList<TValue>>();
         }
 
-        private int FindIndex(TKey key)
-        {
-            for (int i = 0; i < Keys.Count; i++)
-                if (key.CompareTo(Keys[i]) <= 0)
-                    return i;
-            return Keys.Count;
-        }
-
         public void Insert(TKey key, TValue value)
         {
             int index = Keys.IndexOf(key);
@@ -95,8 +87,8 @@ namespace Indexes.BPlusTree
         {
             return true;
         }
-
-        public override bool Redistribute(Node<TKey, TValue> node)
+                
+        public override bool Redistribute(Node<TKey, TValue> node, int direction)
         {
             int total = Keys.Count + node.Keys.Count;
             if (node.Keys.Count <= Minimum)
@@ -108,16 +100,32 @@ namespace Indexes.BPlusTree
             // move half of the keys to the new node
             while (leaf.Keys.Count > middle)
             {
-                Keys.Insert(0, leaf.Keys[leaf.Keys.Count - 1]);
-                leaf.Keys.RemoveAt(leaf.Keys.Count - 1);
+                if (direction < 0)
+                {
+                    Keys.Insert(0, leaf.Keys[leaf.Keys.Count - 1]);
+                    leaf.Keys.RemoveAt(leaf.Keys.Count - 1);
+                }
+                else 
+                {
+                    Keys.Add(leaf.Keys[0]);
+                    leaf.Keys.RemoveAt(0);
+                }
             }
 
             // move half of the values to the new node
             // values will always have k items
             while (leaf.Values.Count > middle)
             {
-                Values.Insert(0, leaf.Values[leaf.Values.Count - 1]);
-                leaf.Values.RemoveAt(leaf.Values.Count - 1);
+                if (direction < 0)
+                {
+                    Values.Insert(0, leaf.Values[leaf.Values.Count - 1]);
+                    leaf.Values.RemoveAt(leaf.Values.Count - 1);
+                }
+                else 
+                {
+                    Values.Add(leaf.Values[0]);
+                    leaf.Values.RemoveAt(0);
+                }
             }
 
             return true;

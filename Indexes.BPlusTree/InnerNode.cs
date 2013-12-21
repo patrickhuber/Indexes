@@ -97,7 +97,7 @@ namespace Indexes.BPlusTree
             return false;
         }
 
-        public override bool Redistribute(Node<TKey, TValue> node)
+        public override bool Redistribute(Node<TKey, TValue> node, int direction)
         {
             int total = Keys.Count + node.Keys.Count;
             if (total <= Minimum)
@@ -109,15 +109,31 @@ namespace Indexes.BPlusTree
             // move half of the keys to the new node
             while (node.Keys.Count > middle)
             {
-                Keys.Insert(0, node.Keys[node.Keys.Count - 1]);
-                node.Keys.RemoveAt(node.Keys.Count - 1);
+                if (direction < 0)
+                {
+                    Keys.Insert(0, node.Keys[node.Keys.Count - 1]);
+                    node.Keys.RemoveAt(node.Keys.Count - 1);
+                }
+                else
+                {
+                    Keys.Add(node.Keys[0]);
+                    node.Keys.RemoveAt(0);
+                }
             }
             // move half of the children to the new node
             // children will always have k+1
             while (innerNode.Children.Count > middle)
             {
-                Children.Insert(0, innerNode.Children[innerNode.Children.Count - 1]);
-                innerNode.Children.RemoveAt(innerNode.Children.Count - 1);
+                if (direction < 0)
+                {
+                    Children.Insert(0, innerNode.Children[innerNode.Children.Count - 1]);
+                    innerNode.Children.RemoveAt(innerNode.Children.Count - 1);
+                }
+                else 
+                {
+                    Children.Add(innerNode.Children[0]);
+                    innerNode.Children.RemoveAt(0);
+                }
             }
 
             return true;
