@@ -149,35 +149,20 @@ namespace Indexes.BPlusTree.UnitTests
                 level1Child1.Keys.Add(12);            
 
                     var level2Child1 = new LeafNode<int, int>(3);
-                    level2Child1.Keys.Add(1);
-                    level2Child1.Values.Add(new List<int>());
-                    level2Child1.Values[0].Add(1);
-                    
-                    level2Child1.Keys.Add(4);
-                    level2Child1.Values.Add(new List<int>());
-                    level2Child1.Values[1].Add(4);
+                    level2Child1.Add(1, 1);
+                    level2Child1.Add(4, 4);
             
                 level1Child1.Children.Add(level2Child1);
             
                     var level2Child2 = new LeafNode<int, int>(3);
-                    level2Child2.Keys.Add(9);
-                    level2Child2.Values.Add(new List<int>());
-                    level2Child2.Values[0].Add(9);
-
-                    level2Child2.Keys.Add(10);
-                    level2Child2.Values.Add(new List<int>());
-                    level2Child2.Values[1].Add(10);
+                    level2Child2.Add(9, 9);
+                    level2Child2.Add(10, 10);
             
                 level1Child1.Children.Add(level2Child2);
            
                     var level2Child3 = new LeafNode<int, int>(3);
-                    level2Child3.Keys.Add(12);
-                    level2Child3.Values.Add(new List<int>());
-                    level2Child3.Values[0].Add(12);
-
-                    level2Child3.Keys.Add(13);
-                    level2Child3.Values.Add(new List<int>());
-                    level2Child3.Values[1].Add(13);
+                    level2Child3.Add(12, 12);
+                    level2Child3.Add(13, 13);
             
                 level1Child1.Children.Add(level2Child3);
             
@@ -187,24 +172,14 @@ namespace Indexes.BPlusTree.UnitTests
                 level1Child2.Keys.Add(20);
 
                     var level2Child4 = new LeafNode<int, int>(3);
-                    level2Child4.Keys.Add(15);
-                    level2Child4.Values.Add(new List<int>());
-                    level2Child4.Values[0].Add(15);
-
-                    level2Child4.Keys.Add(16);
-                    level2Child4.Values.Add(new List<int>());
-                    level2Child4.Values[1].Add(16);
+                    level2Child4.Add(15, 15);
+                    level2Child4.Add(16, 16);
 
                 level1Child2.Children.Add(level2Child4);
 
                     var level2Child5 = new LeafNode<int, int>(3);
-                    level2Child5.Keys.Add(20);
-                    level2Child5.Values.Add(new List<int>());
-                    level2Child5.Values[0].Add(20);
-
-                    level2Child5.Keys.Add(25);
-                    level2Child5.Values.Add(new List<int>());
-                    level2Child5.Values[1].Add(25);
+                    level2Child5.Add(20,20);
+                    level2Child5.Add(25,25);
 
                 level1Child2.Children.Add(level2Child5);
             

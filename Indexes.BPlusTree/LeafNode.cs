@@ -135,5 +135,17 @@ namespace Indexes.BPlusTree
         {
             get { return Order - 1; }
         }
+
+        /// <summary>
+        /// Used for unit testing
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        public void Add(TKey key, TValue value)
+        {
+            Keys.Add(key);
+            Values.Add(new List<TValue>());
+            Values.Last().Add(value);
+        }
     }
 }
