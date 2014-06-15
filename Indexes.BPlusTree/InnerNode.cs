@@ -96,14 +96,11 @@ namespace Indexes.BPlusTree
         {
             return false;
         }
-
-        public override bool Redistribute(Node<TKey, TValue> node, int direction)
+        
+        public override void Redistribute(Node<TKey, TValue> node, int direction)
         {
-            int total = Keys.Count + node.Keys.Count;
-            if (total <= Minimum)
-                return false;
-
             var innerNode = node as InnerNode<TKey, TValue>;
+            int total = Keys.Count + node.Keys.Count;
             int middle = (total + 1) / 2;
 
             // move half of the keys to the new node
@@ -111,8 +108,8 @@ namespace Indexes.BPlusTree
             {
                 if (direction < 0)
                 {
-                    Keys.Insert(0, node.Keys[node.Keys.Count - 1]);
-                    node.Keys.RemoveAt(node.Keys.Count - 1);
+                    var lastKey = node.RemoveLastKey();
+                    InsertKeyAtBeginning(lastKey);
                 }
                 else
                 {
@@ -120,23 +117,82 @@ namespace Indexes.BPlusTree
                     node.Keys.RemoveAt(0);
                 }
             }
+
             // move half of the children to the new node
             // children will always have k+1
             while (innerNode.Children.Count > middle)
             {
                 if (direction < 0)
                 {
-                    Children.Insert(0, innerNode.Children[innerNode.Children.Count - 1]);
-                    innerNode.Children.RemoveAt(innerNode.Children.Count - 1);
+                    var lastChild = innerNode.RemoveLastChild();
+                    InsertChildAtBeginning(lastChild);
                 }
                 else 
                 {
-                    Children.Add(innerNode.Children[0]);
-                    innerNode.Children.RemoveAt(0);
+                    var firstChild = innerNode.RemoveFirstChild();
+                    InsertChildAtEnd(firstChild);
                 }
             }
+        }
 
-            return true;
+        private void InsertChildAtEnd(Node<TKey, TValue> node)
+        {
+            Children.Add(node);
+        }
+
+        private void InsertChildAtBeginning(Node<TKey, TValue> node)
+        {
+            Children.Insert(0, node);
+        }
+
+        private Node<TKey, TValue> RemoveLastChild()
+        {
+            var lastChild = Children.Last();
+            int lastIndex = Keys.Count - 1;
+            Keys.RemoveAt(lastIndex);
+            return lastChild;
+        }
+
+        private Node<TKey, TValue> RemoveFirstChild()
+        {
+            var firstChild = Children.First();
+            int lastIndex = 0;
+            Children.RemoveAt(lastIndex);
+            return firstChild;
+        }
+
+        private static bool KeysAreNotDistributed(InnerNode<TKey, TValue> sourceNode, InnerNode<TKey, TValue> targetNode)
+        {
+            int totalKeys = sourceNode.Keys.Count + targetNode.Keys.Count;
+            int middle = (totalKeys + 1) / 2;
+            return sourceNode.Keys.Count > middle;
+        }
+
+        private static bool ChildrenAreNotRedistributed(InnerNode<TKey, TValue> sourceNode, InnerNode<TKey, TValue> targetNode)
+        {
+            int totalKeys = sourceNode.Children.Count + targetNode.Children.Count;
+            int middle = (totalKeys + 1) / 2;
+            return sourceNode.Children.Count > middle;
+        }
+
+        private static void RedistributeFromHighToLow(InnerNode<TKey, TValue> highNode, InnerNode<TKey, TValue> lowNode)
+        {
+            while (KeysAreNotDistributed(highNode, lowNode))
+            { 
+            }
+            while (ChildrenAreNotRedistributed(highNode, lowNode))
+            { 
+            }
+        }
+
+        private static void RedistributeFromLowToHigh(InnerNode<TKey, TValue> lowNode, InnerNode<TKey, TValue> highNode)
+        {
+            while (KeysAreNotDistributed(lowNode, highNode))
+            {
+            }
+            while (ChildrenAreNotRedistributed(lowNode, highNode))
+            {
+            }
         }
 
         public override int Maximum

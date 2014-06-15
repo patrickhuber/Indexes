@@ -92,124 +92,126 @@ namespace Indexes.BPlusTree
 
         public void Delete(TKey key)            
         {
-            Delete(Root, key, default(TValue), false, 0);
+            DeleteRecursively(Root, key, default(TValue), false, 0);
         }
 
         public void Delete(TKey key, TValue value)
         {
-            Delete(Root, key, value, true, 0);
+            DeleteRecursively(Root, key, value, true, 0);
         }
-
-        private void Delete(Node<TKey, TValue> node, TKey key, TValue value, bool deleteValue, int level)
+        
+        private void DeleteInner(InnerNode<TKey, TValue> inner, TKey key, TValue value, bool onlyDeleteValue, int recursionLevel)
         {
-            // is node a leaf?
-            if (node.IsLeaf())
+            var keyIndexInInnerNode = inner.FindIndex(key);
+            var child = inner.Children[keyIndexInInnerNode];
+
+            DeleteRecursively(child, key, value, onlyDeleteValue, recursionLevel + 1);
+
+            var parent = inner;
+            if (!child.IsSubOptimal())
+                return;
+
+            var sibling = (Node<TKey, TValue>)null;
+            var siblingDirection = 0;
+
+            // if there is no left child
+            if (keyIndexInInnerNode == 0)
             {
-                var leaf = node as LeafNode<TKey, TValue>;
-                var keyIndex = leaf.Keys.IndexOf(key);
-
-                if (keyIndex >= 0)
-                {
-                    var valueList = leaf.Values[keyIndex];
-                    var valueIndex = valueList.IndexOf(value);
-
-                    // if deleteValue and value found and list count == 1
-                    // OR
-                    // if not deleteValue
-                    //  delete the key and the value list   
-                    bool removeKey =
-                        (deleteValue && (valueIndex > 0 && valueList.Count > 1))
-                        || !deleteValue;
-
-                    if (removeKey)
-                    {
-                        leaf.Keys.RemoveAt(keyIndex);
-                        leaf.Values.RemoveAt(keyIndex);
-                    }
-                    else
-                    {
-                        valueList.Remove(value);
-                    }
-                }
+                siblingDirection = +1;
+                sibling = parent.Children[keyIndexInInnerNode + 1];
             }
-            // node is an inner node
-            else 
+
+            // if there is no right child
+            else if (keyIndexInInnerNode == parent.Children.Count - 1)
             {
-                var inner = node as InnerNode<TKey, TValue>;
-                var index = inner.FindIndex(key);                
+                siblingDirection = -1;
+                sibling = parent.Children[keyIndexInInnerNode - 1];
+            }
 
-                var child = inner.Children[index];
-                Delete(child, key, value, deleteValue, level + 1);
-
-                var parent = inner;
-                if (!child.IsSubOptimal())
-                    return;
-
-                var sibling = (Node<TKey, TValue>)null;
-                var siblingDirection = 0;
-
-                // if there is no left child
-                if (index == 0)
+            // if both left and right child, 
+            // only use right child left child is suboptimal and right child is not
+            else
+            {
+                var leftChild = parent.Children[keyIndexInInnerNode - 1];
+                var rightChild = parent.Children[keyIndexInInnerNode + 1];
+                siblingDirection = -1;
+                sibling = leftChild;
+                if (leftChild.IsSubOptimal() && !rightChild.IsSubOptimal())
                 {
                     siblingDirection = +1;
-                    sibling = parent.Children[index + 1];
+                    sibling = rightChild;
                 }
-
-                // if there is no right child
-                else if (index == parent.Children.Count - 1)
-                {
-                    siblingDirection = -1;
-                    sibling = parent.Children[index - 1];
-                }
-
-                // if both left and right child, 
-                // only use right child left child is suboptimal and right child is not
-                else
-                {
-                    var leftChild = parent.Children[index - 1];
-                    var rightChild = parent.Children[index + 1];
-                    siblingDirection = -1;
-                    sibling = leftChild;
-                    if (leftChild.IsSubOptimal() && !rightChild.IsSubOptimal())
-                    {
-                        siblingDirection = +1;
-                        sibling = rightChild;
-                    }
-                }
-
-                // the parent key index is the location of the key between the sibling node and the
-                // child node. 
-                int parentKeyIndex = siblingDirection > 0 ? index : index + siblingDirection;
-
-                // try to redistrubute nodes.                
-                if (child.Redistribute(sibling, siblingDirection))
-                {       
-                    var newParentKey = default(TKey);
-                    
-                    // recalculate the key at the given index using the left tree max
-                    // if sibling is > child
-                    if (siblingDirection > 0)
-                        newParentKey = sibling.Keys.First();
-                    // if child > sibling
-                    else
-                        newParentKey = child.Keys.First();
-
-                    parent.Keys[parentKeyIndex] = newParentKey;
-                }
-                else
-                {
-                    // if redistrbute fails, merge nodes
-                    child.Merge(sibling);
-
-                    // when a merge occurs, we need to delete the sibling from the parent. 
-                    parent.Children.RemoveAt(index + siblingDirection);
-                    parent.Keys.RemoveAt(parentKeyIndex);
-                }                
             }
 
-            // if at the root and the root is suboptimal
-            // lower the height of the tree
-            if (level == 0 && node.IsSubOptimal())
+            // the parent key index is the location of the key between the sibling node and the
+            // child node. 
+            int parentKeyIndex = siblingDirection > 0 ? keyIndexInInnerNode : keyIndexInInnerNode + siblingDirection;
+
+            // try to redistrubute nodes.                
+            if (child.CanRedistribute(sibling))
+            {
+                child.Redistribute(sibling, siblingDirection);
+                var newParentKey = default(TKey);
+
+                // recalculate the key at the given index using the left tree max
+                // if sibling is > child
+                if (siblingDirection > 0)
+                    newParentKey = sibling.Keys.First();
+                // if child > sibling
+                else
+                    newParentKey = child.Keys.First();
+
+                parent.Keys[parentKeyIndex] = newParentKey;
+            }
+            else
+            {
+                // if redistrbute fails, merge nodes
+                child.Merge(sibling);
+
+                // when a merge occurs, we need to delete the sibling from the parent. 
+                parent.Children.RemoveAt(keyIndexInInnerNode + siblingDirection);
+                parent.Keys.RemoveAt(parentKeyIndex);
+            }
+        }
+
+        private void DeleteLeaf(LeafNode<TKey, TValue> leaf, TKey key, TValue value, bool onlyDeleteValue, int recursionLevel)
+        {
+            var keyIndex = leaf.Keys.IndexOf(key);
+
+            if (keyIndex >= 0)
+            {
+                var valueList = leaf.Values[keyIndex];
+                var valueIndex = valueList.IndexOf(value);
+
+                // if deleteValue and value found and list count == 1
+                // OR
+                // if not deleteValue
+                //  delete the key and the value list   
+                bool removeKey =
+                    (onlyDeleteValue && (valueIndex > 0 && valueList.Count > 1))
+                    || !onlyDeleteValue;
+
+                if (removeKey)
+                {
+                    leaf.Keys.RemoveAt(keyIndex);
+                    leaf.Values.RemoveAt(keyIndex);
+                }
+                else
+                {
+                    valueList.Remove(value);
+                }
+            }
+        }
+
+        private void DeleteRecursively(Node<TKey, TValue> node, TKey key, TValue value, bool onlyDeleteValue, int recursionLevel)
+        {            
+            if (node.IsLeaf())
+                DeleteLeaf(node as LeafNode<TKey, TValue>, key, value, onlyDeleteValue, recursionLevel);            
+            else
+                DeleteInner(node as InnerNode<TKey, TValue>, key, value, onlyDeleteValue, recursionLevel);
+
+            bool rootIsSuboptimal = recursionLevel == 0 && node.IsSubOptimal();
+            if (rootIsSuboptimal)
             { }
         }
     }

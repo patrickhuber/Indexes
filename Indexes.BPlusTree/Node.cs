@@ -22,8 +22,19 @@ namespace Indexes.BPlusTree
         { }
 
         public abstract Node<TKey, TValue> Split();
+
         public abstract void Merge(Node<TKey, TValue> node);
-        public abstract bool Redistribute(Node<TKey, TValue> node, int direction);
+        
+        public bool CanRedistribute(Node<TKey, TValue> node)
+        {
+            int total = Keys.Count + node.Keys.Count;
+            if (total <= Minimum)
+                return false;
+            return true;
+        }
+
+        public abstract void Redistribute(Node<TKey, TValue> node, int direction);
+
         public abstract bool IsLeaf();
 
         protected virtual void Init(int order)
@@ -58,6 +69,32 @@ namespace Indexes.BPlusTree
         public virtual bool IsSubOptimal()
         {
             return Keys.Count < (Order / 2);
+        }
+
+        public TKey RemoveLastKey()
+        {
+            var lastKey = Keys.Last();
+            int lastIndex = Keys.Count - 1;            
+            Keys.RemoveAt(lastIndex);
+            return lastKey;
+        }
+
+        public TKey RemoveFirstKey()
+        {
+            var firstKey = Keys.First();
+            int lastIndex = 0;
+            Keys.RemoveAt(lastIndex);
+            return firstKey;
+        }
+
+        public void InsertKeyAtBeginning(TKey key)
+        {
+            Keys.Insert(0, key);
+        }
+
+        public void InsertKeyAtEnd(TKey key)
+        {
+            Keys.Add(key);
         }
     }
 }
